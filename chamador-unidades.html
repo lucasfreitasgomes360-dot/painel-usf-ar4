@@ -19,9 +19,11 @@
         .btn-coleta { background: #6f42c1; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 15px; }
         .painel-status { background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; color: #856404; text-align: center; }
         .painel-status b { font-size: 1.1rem; color: #000; }
+        .alerta-instrucao { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.85rem; text-align: center; font-weight: bold; }
         .flex-buttons { display: flex; justify-content: space-between; margin-top: 15px; }
         .btn-chamar { width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; margin-top: 20px; cursor: pointer; }
         .btn-reset { background: none; border: none; color: #999; font-size: 0.7rem; cursor: pointer; text-decoration: underline; margin-top: 15px; width: 100%; }
+        .historico-local { margin-top: 20px; border-top: 2px solid #003366; padding-top: 10px; }
         .item-historico { background: #fff; border: 1px solid #ddd; padding: 8px 12px; border-radius: 6px; margin-bottom: 5px; font-size: 0.85rem; }
     </style>
 </head>
@@ -50,6 +52,7 @@
             </div>
 
             <div id="interfaceAcolhimento" style="display:none">
+                <div class="alerta-instrucao">ℹ️ Informe a ÚLTIMA senha entregue.</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div><small>Normal:</small><input type="number" id="inputNormal" value="0"></div>
                     <div><small>Pref:</small><input type="number" id="inputPref" value="0"></div>
@@ -86,23 +89,23 @@
                 <label>Mensagem para TV:</label>
                 <input type="text" id="inputAvisoUnidade">
                 <label>Cor do Card:</label>
-                <input type="color" id="corAviso" value="#007bff">
+                <input type="color" id="corAviso" value="#007bff" style="height:40px;">
                 <input type="hidden" id="editAvisoKey">
                 <button id="btnSalvarAviso" class="btn-update" onclick="salvarAvisoTV()">SALVAR AVISO</button>
-                <div id="listaAvisosGerencia" style="margin-top:10px; font-size:0.8rem;"></div>
+                <div id="listaAvisosGerencia" style="margin-top:10px; font-size:0.8rem; background:#f8f9fa; padding:5px;"></div>
             </div>
 
-            <div id="sessaoHistorico" style="display:none; margin-top:20px;">
-                <h3>Histórico: <span id="nomeSalaHistorico"></span></h3>
+            <div class="historico-local" id="sessaoHistorico" style="display:none;">
+                <h3>Histórico: <span id="nomeSalaHistorico" style="color:#d39e00"></span></h3>
                 <div id="listaHistorico"></div>
             </div>
 
-            <button class="btn-reset" onclick="resetContadores()">Reiniciar Sistema</button>
+            <button class="btn-reset" onclick="resetContadores()">Reiniciar Sistema (aeroranchoiv)</button>
         </div>
     </div>
 
     <script>
-        // TRAVA DE LOGIN
+        // --- TRAVA DE SEGURANÇA ---
         if (sessionStorage.getItem("logado_usf") !== "true") { window.location.href = "index.html"; }
 
         const firebaseConfig = {
@@ -131,6 +134,12 @@
             document.getElementById('stPref').innerText = d.pref;
             document.getElementById('stColeta').innerText = d.coleta;
             document.getElementById('stOdonto').innerText = d.odonto;
+            if(document.getElementById('categoria').value === 'acolhimento'){
+                document.getElementById('inputNormal').value = d.normal;
+                document.getElementById('inputPref').value = d.pref;
+                document.getElementById('inputColeta').value = d.coleta;
+                document.getElementById('inputOdonto').value = d.odonto;
+            }
         });
 
         function trocouCategoria() {
@@ -199,7 +208,8 @@
             document.getElementById('nomeSalaHistorico').innerText = sala;
             if (historicosPorSala[sala]) {
                 historicosPorSala[sala].forEach(item => {
-                    lista.innerHTML += `<div class="item-historico"><b>${item.texto}</b> - ${item.hora} <button onclick="enviarParaFirebase('${item.texto}')">Rechamar</button></div>`;
+                    lista.innerHTML += `<div class="item-historico"><b>${item.texto}</b> - ${item.hora} <br>
+                    <button style="background:#ffc107; border:none; padding:4px; border-radius:4px; cursor:pointer;" onclick="enviarParaFirebase('${item.texto}')">RECHAMAR</button></div>`;
                 });
             }
         }
@@ -209,8 +219,13 @@
             const cor = document.getElementById('corAviso').value;
             const key = document.getElementById('editAvisoKey').value;
             if(!msg) return;
-            if(key) database.ref('avisos_unidade/' + key).update({msg, cor});
-            else database.ref('avisos_unidade').push({msg, cor});
+            if(key) {
+                database.ref('avisos_unidade/' + key).update({msg, cor});
+                document.getElementById('editAvisoKey').value = "";
+                document.getElementById('btnSalvarAviso').innerText = "SALVAR AVISO";
+            } else {
+                database.ref('avisos_unidade').push({msg, cor});
+            }
             document.getElementById('inputAvisoUnidade').value = "";
         }
 
@@ -220,11 +235,21 @@
                 container.innerHTML = "<b>Avisos Ativos:</b><br>";
                 const data = snap.val();
                 for(let key in data) {
-                    container.innerHTML += `<div>${data[key].msg} <button onclick="excluirAviso('${key}')">X</button></div>`;
+                    container.innerHTML += `<div style="padding:5px; border-bottom:1px solid #ddd;">
+                        <span style="color:${data[key].cor}">●</span> ${data[key].msg}
+                        <button onclick="prepararEdicao('${key}', '${data[key].msg}', '${data[key].cor}')">Edit</button>
+                        <button onclick="excluirAviso('${key}')" style="background:red; color:white; border:none;">X</button>
+                    </div>`;
                 }
             });
         }
-        function excluirAviso(key) { database.ref('avisos_unidade/'+key).remove(); }
+        function prepararEdicao(key, msg, cor) {
+            document.getElementById('inputAvisoUnidade').value = msg;
+            document.getElementById('corAviso').value = cor;
+            document.getElementById('editAvisoKey').value = key;
+            document.getElementById('btnSalvarAviso').innerText = "SALVAR ALTERAÇÃO";
+        }
+        function excluirAviso(key) { if(confirm("Excluir?")) database.ref('avisos_unidade/'+key).remove(); }
 
         function resetContadores() {
             if(prompt("Senha:") === "aeroranchoiv") {
