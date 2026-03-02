@@ -6,8 +6,8 @@
     <title>Sistema de Fila - USF Aero Rancho IV</title>
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #002b5c;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #002b5c 0%, #001a38 100%);
             color: white;
             display: flex;
             flex-direction: column;
@@ -19,41 +19,51 @@
         }
         .container {
             background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            max-width: 500px;
+            padding: 50px 40px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            max-width: 450px;
             width: 90%;
             border-bottom: 8px solid #ffcc00;
         }
-        h1 { color: #002b5c; margin-top: 0; font-size: 2rem; }
-        p { color: #555; margin-bottom: 30px; font-size: 1.1rem; }
+        h1 { color: #002b5c; margin-top: 0; font-size: 2.2rem; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 35px; font-size: 1.1rem; }
         .btn {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             width: 100%;
-            padding: 15px;
+            padding: 18px;
             margin-bottom: 15px;
-            border-radius: 8px;
+            border-radius: 10px;
             text-decoration: none;
             font-weight: bold;
             font-size: 1.2rem;
             text-transform: uppercase;
-            transition: transform 0.2s, opacity 0.2s;
+            transition: all 0.3s ease;
             box-sizing: border-box;
         }
-        .btn:hover { transform: scale(1.02); opacity: 0.9; }
-        .btn-tv { background: #ffcc00; color: #002b5c; border: 2px solid #ffcc00; }
-        .btn-chamador { background: #007bff; color: white; border: 2px solid #007bff; }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:active { transform: translateY(0); }
+        .btn-tv { background: #ffcc00; color: #002b5c; border: none; }
+        .btn-chamador { background: #007bff; color: white; border: none; }
+        .rodape { margin-top: 30px; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1>USF Aero Rancho IV</h1>
-        <p>Selecione o módulo que deseja acessar:</p>
+        <p>Selecione o módulo de acesso:</p>
         
         <a href="tv-unidades.html" class="btn btn-tv" target="_blank">📺 Abrir Tela da TV</a>
-        <a href="chamador-unidades.html" class="btn btn-chamador" target="_blank">🎤 Abrir Painel Chamador</a>
+        <a href="chamador-unidades.html" class="btn btn-chamador" target="_blank">🎤 Abrir Chamador</a>
+    </div>
+
+    <div class="rodape">
+        Sistema de Gestão de Filas e Chamadas<br>
+        Atualizado para proporcionar o melhor atendimento.
     </div>
 
 </body>
