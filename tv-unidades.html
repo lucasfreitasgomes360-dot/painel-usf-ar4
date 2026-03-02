@@ -100,24 +100,24 @@
             somCampainha.play().catch(e => {});
             atualizarHistTV(atual.msg, atual.local);
             await falarTexto(atual.msg, atual.local);
-            setTimeout(iniciarFila, 4500);
+            setTimeout(iniciarFila, 4000);
         }
 
         function falarTexto(nome, local) {
             return new Promise((resolve) => {
                 window.speechSynthesis.cancel();
                 
-                // Lógica de concordância revisada
                 let loc = local.toLowerCase();
-                let prep = "ao"; // Padrão masculino (Consultório, Auditório, Serviço Social)
+                let prep = "ao"; 
                 
-                if (loc.includes("recepção") || loc.includes("sala") || loc.includes("triagem") || loc.includes("mesa") || loc.includes("gerência")) {
-                    prep = "à"; // Feminino
+                // Lista de locais femininos para concordância "à"
+                if (loc.includes("recepção") || loc.includes("triagem") || loc.includes("vacina") || loc.includes("coleta") || loc.includes("sala") || loc.includes("mesa") || loc.includes("gerência")) {
+                    prep = "à"; 
                 }
 
                 let texto = "";
                 if (nome.toUpperCase().includes("SENHA")) {
-                    texto = `Atenção. ${nome}. Comparecer ${prep} ${local}`;
+                    texto = `Atenção. ${nome}. Dirija-se ${prep} ${local}`;
                 } else {
                     texto = `Atenção. Paciente ${nome}. Dirija-se ${prep} ${local}`;
                 }
@@ -127,7 +127,8 @@
                 fala.rate = 0.9;
                 fala.onend = () => resolve();
                 window.speechSynthesis.speak(fala);
-                setTimeout(resolve, 8000);
+                // Tempo de segurança caso a fala trave
+                setTimeout(resolve, 7000);
             });
         }
 
