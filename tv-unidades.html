@@ -92,46 +92,57 @@
             }
             processandoChamada = true; clearInterval(intervaloCarrossel);
             const atual = filaDeEspera.shift();
+            
+            // Limpa o texto exibido na tela (remove o marcador interno COLABORADOR:)
+            let msgExibida = atual.msg.replace("COLABORADOR: ", "");
+            
             document.getElementById('area-chamada').style.display = 'block';
             document.getElementById('painel-informativo').style.display = 'none';
-            document.getElementById('txtPaciente').innerText = atual.msg;
+            document.getElementById('txtPaciente').innerText = msgExibida;
             document.getElementById('txtSala').innerText = atual.local;
-            document.body.classList.remove('piscar-alerta'); void document.body.offsetWidth; document.body.classList.add('piscar-alerta');
+            
+            document.body.classList.remove('piscar-alerta'); 
+            void document.body.offsetWidth; 
+            document.body.classList.add('piscar-alerta');
+            
             somCampainha.play().catch(e => {});
-            atualizarHistTV(atual.msg, atual.local);
+            atualizarHistTV(msgExibida, atual.local);
             await falarTexto(atual.msg, atual.local);
             setTimeout(iniciarFila, 4000);
         }
 
         function falarTexto(nome, local) {
-    return new Promise((resolve) => {
-        window.speechSynthesis.cancel();
-        
-        let loc = local.toLowerCase();
-        let prep = "ao"; 
-        if (loc.includes("recepção") || loc.includes("triagem") || loc.includes("vacina") || loc.includes("coleta") || loc.includes("sala") || loc.includes("mesa") || loc.includes("gerência")) {
-            prep = "à"; 
-        }
+            return new Promise((resolve) => {
+                window.speechSynthesis.cancel();
+                
+                let loc = local.toLowerCase();
+                let prep = "ao"; 
+                if (loc.includes("recepção") || loc.includes("triagem") || loc.includes("vacina") || loc.includes("coleta") || loc.includes("sala") || loc.includes("mesa") || loc.includes("gerência")) {
+                    prep = "à"; 
+                }
 
-        let texto = "";
-        if (nome.toUpperCase().includes("SENHA")) {
-            texto = `Atenção. ${nome}. Dirija-se ${prep} ${local}`;
-        } else if (nome.toUpperCase().includes("COLABORADOR:")) {
-            // Remove o marcador interno e fala como colaborador
-            let nomeLimpo = nome.replace("COLABORADOR: ", "");
-            texto = `Atenção. Colaborador ${nomeLimpo}. Dirija-se ${prep} ${local}`;
-        } else {
-            texto = `Atenção. Paciente ${nome}. Dirija-se ${prep} ${local}`;
-        }
+                let texto = "";
+                let nomeUpper = nome.toUpperCase();
 
-        const fala = new SpeechSynthesisUtterance(texto);
-        fala.lang = 'pt-BR';
-        fala.rate = 0.9;
-        fala.onend = () => resolve();
-        window.speechSynthesis.speak(fala);
-        setTimeout(resolve, 7000);
-    });
-}
+                if (nomeUpper.includes("SENHA")) {
+                    texto = `Atenção. ${nome}. Dirija-se ${prep} ${local}`;
+                } else if (nomeUpper.includes("COLABORADOR:")) {
+                    // Aqui está o ajuste: se for colaborador, NÃO fala a palavra "paciente"
+                    let nomeLimpo = nome.replace(/COLABORADOR: /gi, "");
+                    texto = `Atenção. Colaborador ${nomeLimpo}. Dirija-se ${prep} ${local}`;
+                } else {
+                    // Para todos os outros casos, mantém o padrão paciente
+                    texto = `Atenção. Paciente ${nome}. Dirija-se ${prep} ${local}`;
+                }
+
+                const fala = new SpeechSynthesisUtterance(texto);
+                fala.lang = 'pt-BR';
+                fala.rate = 0.9;
+                fala.onend = () => resolve();
+                window.speechSynthesis.speak(fala);
+                setTimeout(resolve, 7000);
+            });
+        }
 
         function iniciarCarrossel() {
             clearInterval(intervaloCarrossel);
@@ -167,4 +178,3 @@
     </script>
 </body>
 </html>
-
