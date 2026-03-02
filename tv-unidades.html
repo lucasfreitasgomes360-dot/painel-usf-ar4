@@ -6,7 +6,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
-        body { background: #002b5c; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
+        body { background: #002b5c; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .topo { background: #001a38; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid #ffcc00; }
         .unidade-nome { text-align: left; }
         .unidade-nome h1 { font-size: 1.8rem; margin: 0; color: white; letter-spacing: 1px; font-weight: 900; }
@@ -27,9 +27,15 @@
         .piscar-alerta { animation: flash 0.8s ease-in-out 5; }
         .historico-tv { background: rgba(0,0,0,0.3); padding: 15px; display: flex; justify-content: center; gap: 40px; border-top: 2px solid rgba(255,255,255,0.1); }
         .hist-item-tv { border-left: 4px solid #ffcc00; padding-left: 15px; text-align: left; }
+        .assinatura-tv { position: absolute; bottom: 8px; right: 15px; font-size: 0.65rem; color: rgba(255,255,255,0.2); text-align: right; line-height: 1.2; }
     </style>
 </head>
 <body id="corpo-tv">
+    <div class="assinatura-tv">
+        Desenvolvido por <b>Lucas Freitas Gomes</b> &copy; 2026<br>
+        USF Aero Rancho IV
+    </div>
+
     <div id="aviso-inicial" onclick="this.style.display='none'" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer;">
         <h1 style="color:#ffcc00; font-size: 3rem;">TELA DA TV</h1>
         <p style="color:white; font-size: 1.5rem;">CLIQUE PARA ATIVAR O SOM</p>
@@ -92,19 +98,12 @@
             }
             processandoChamada = true; clearInterval(intervaloCarrossel);
             const atual = filaDeEspera.shift();
-            
-            // Limpa o texto exibido na tela (remove o marcador interno COLABORADOR:)
             let msgExibida = atual.msg.replace("COLABORADOR: ", "");
-            
             document.getElementById('area-chamada').style.display = 'block';
             document.getElementById('painel-informativo').style.display = 'none';
             document.getElementById('txtPaciente').innerText = msgExibida;
             document.getElementById('txtSala').innerText = atual.local;
-            
-            document.body.classList.remove('piscar-alerta'); 
-            void document.body.offsetWidth; 
-            document.body.classList.add('piscar-alerta');
-            
+            document.body.classList.remove('piscar-alerta'); void document.body.offsetWidth; document.body.classList.add('piscar-alerta');
             somCampainha.play().catch(e => {});
             atualizarHistTV(msgExibida, atual.local);
             await falarTexto(atual.msg, atual.local);
@@ -114,28 +113,15 @@
         function falarTexto(nome, local) {
             return new Promise((resolve) => {
                 window.speechSynthesis.cancel();
-                
                 let loc = local.toLowerCase();
                 let prep = "ao"; 
-                if (loc.includes("recepção") || loc.includes("triagem") || loc.includes("vacina") || loc.includes("coleta") || loc.includes("sala") || loc.includes("mesa") || loc.includes("gerência")) {
-                    prep = "à"; 
-                }
-
-                let texto = "";
-                let nomeUpper = nome.toUpperCase();
-
-                if (nomeUpper.includes("SENHA")) {
-                    texto = `Atenção. ${nome}. Dirija-se ${prep} ${local}`;
-                } else if (nomeUpper.includes("COLABORADOR:")) {
-                    // Aqui está o ajuste: se for colaborador, NÃO fala a palavra "paciente"
-                    let nomeLimpo = nome.replace(/COLABORADOR: /gi, "");
-                    texto = `Atenção. Colaborador ${nomeLimpo}. Dirija-se ${prep} ${local}`;
-                } else {
-                    // Para todos os outros casos, mantém o padrão paciente
-                    texto = `Atenção. Paciente ${nome}. Dirija-se ${prep} ${local}`;
-                }
-
-                const fala = new SpeechSynthesisUtterance(texto);
+                if (loc.includes("recepção") || loc.includes("triagem") || loc.includes("vacina") || loc.includes("coleta") || loc.includes("sala") || loc.includes("mesa") || loc.includes("gerência")) { prep = "à"; }
+                let t = "";
+                let nU = nome.toUpperCase();
+                if (nU.includes("SENHA")) { t = `Atenção. ${nome}. Dirija-se ${prep} ${local}`; }
+                else if (nU.includes("COLABORADOR:")) { let nL = nome.replace(/COLABORADOR: /gi, ""); t = `Atenção. Colaborador ${nL}. Dirija-se ${prep} ${local}`; }
+                else { t = `Atenção. Paciente ${nome}. Dirija-se ${prep} ${local}`; }
+                const fala = new SpeechSynthesisUtterance(t);
                 fala.lang = 'pt-BR';
                 fala.rate = 0.9;
                 fala.onend = () => resolve();
